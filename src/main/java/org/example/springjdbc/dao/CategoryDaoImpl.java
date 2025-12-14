@@ -25,6 +25,7 @@ public class CategoryDaoImpl implements CategoryDao{
         String sql= """
                 select * from categories
                 """;
+
         return jdbcTemplate.query(sql,this::mapRow);
 //        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Category.class));
     }
@@ -34,6 +35,7 @@ public class CategoryDaoImpl implements CategoryDao{
         String sql= """
                 select * from categories where id=?
                 """;
+        System.out.println(sql);
 //        List<Category> list= jdbcTemplate.query(sql,this::mapRow,id);
 //        if (list.isEmpty()){
 //            throw new NotFoundException(e.getMessage);
@@ -84,7 +86,17 @@ public class CategoryDaoImpl implements CategoryDao{
 
     @Override
     public void deleteById(long id) {
-
+        String sql= """
+                delete from categories where id=?;
+                """;
+        String sqlDeleteProducts= """
+                delete from products where category_id=?
+                """;
+        jdbcTemplate.update(sqlDeleteProducts,id);
+        int rowsAffected= jdbcTemplate.update(sql,id);
+        if (rowsAffected==0){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
     private Category mapRow(ResultSet rs,int rowNum)throws SQLException {
             long id= rs.getLong("id");
