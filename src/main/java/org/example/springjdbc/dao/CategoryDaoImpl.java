@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.springjdbc.exceptions.NotFoundException;
 import org.example.springjdbc.model.Category;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -20,13 +22,18 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CategoryDaoImpl implements CategoryDao{
     private final JdbcTemplate jdbcTemplate;
+
+
+
+
+
     @Override
     public List<Category> findAll() {
-        String sql= """
-                select * from categories
-                """;
+            String sql= """
+                    select * from categories
+                    """;
 
-        return jdbcTemplate.query(sql,this::mapRow);
+            return jdbcTemplate.query(sql,this::mapRow);
 //        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Category.class));
     }
 
@@ -98,6 +105,36 @@ public class CategoryDaoImpl implements CategoryDao{
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
+
+    @Override
+    public void create1000() {
+        String sql= """
+        insert into categories (name) values (?);
+""";
+        for (int i = 0; i < 1000; i++) {
+            jdbcTemplate.update(sql,""+i);
+        }
+    }
+
+    @Override
+    public void create1000Batch() {
+        //быстрее для огромных данных
+        String sql= """
+        insert into categories (name) values (?);
+""";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1,""+i);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return 1000;
+            }
+        });
+    }
+
     private Category mapRow(ResultSet rs,int rowNum)throws SQLException {
             long id= rs.getLong("id");
             String name=rs.getString("name");

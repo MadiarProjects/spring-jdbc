@@ -33,4 +33,9 @@ public class CategoryController {
     public void deleteById(@PathVariable long id){
         categoryDao.deleteById(id);
     }
+
+    @GetMapping("/create1000batch")
+    public void create100Batch(){
+        categoryDao.create1000Batch();
+    }
 }

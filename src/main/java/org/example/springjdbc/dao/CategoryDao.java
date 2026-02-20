@@ -10,4 +10,7 @@ public interface CategoryDao {
     Category create (Category category);
     Category update(Category category);
     void deleteById(long id);
+
+    void create1000();
+    void create1000Batch();
 }
